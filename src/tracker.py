@@ -45,7 +45,10 @@ class CentroidTracker:
         for object_id, current_centroid in self.objects.items():
             latest = current_centroid[-1]
             for index, new_centroid in enumerate(new_centroids):
-                dist = math.dist(latest, new_centroid)
+                # dist = math.dist(latest, new_centroid)
+                dist = math.sqrt(
+                    sum([(a - b) ** 2 for a, b in zip(latest, new_centroid)])
+                )
                 distances.append((object_id, new_centroid, dist))
 
         distances_asc = sorted(distances, key=lambda x: x[2])

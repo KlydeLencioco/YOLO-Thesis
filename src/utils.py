@@ -17,7 +17,8 @@ def get_config_kwargs(section: str, kwargs: Tuple[Tuple[str, Any]]) -> Dict[str,
         return section_kwargs
 
     for kwarg, convert in kwargs:
-        if value := values.get(kwarg):
+        value = values.get(kwarg)
+        if value:
             section_kwargs[kwarg] = convert(value)
 
     return section_kwargs
@@ -29,7 +30,8 @@ def get_config(section: str, kwarg: str, convert: Any, default: Any) -> Any:
     except Exception:
         return default
 
-    if value := values.get(kwarg):
+    value = values.get(kwarg)
+    if value:
         return convert(value)
 
     return default
