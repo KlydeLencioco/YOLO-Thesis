@@ -4,12 +4,18 @@ import cv2
 
 
 class YOLO:
-    def __init__(self, path):
+    def __init__(
+        self,
+        path: str,
+        model: str = "yolov3-tiny.weights",
+        config: str = "yolov3-tiny.cfg",
+        names: str = "coco.names",
+    ):
         yolo_dir = "yolo"
 
-        self.model_path = os.path.join(path, yolo_dir, "yolov3.weights")
-        self.config_path = os.path.join(path, yolo_dir, "yolov3.cfg")
-        self.class_path = os.path.join(path, yolo_dir, "coco.names")
+        self.model_path = os.path.join(path, yolo_dir, model)
+        self.config_path = os.path.join(path, yolo_dir, config)
+        self.class_path = os.path.join(path, yolo_dir, names)
 
         self._net = None
         self._layers = None
