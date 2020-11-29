@@ -1,4 +1,5 @@
 import os
+from distutils.util import strtobool
 from pathlib import Path
 
 import cv2
@@ -22,11 +23,17 @@ tracker = CentroidTracker(**tracker_kwargs)
 
 classes = yolo.get_classes()
 
-vid_path = os.path.join(current_path, "data", "1.mp4")
-cap = cv2.VideoCapture(vid_path)
+video_source = utils.get_config("main", "video_source", int, None)
+demo = os.path.join(current_path, "data", "1.mp4")
+cap = cv2.VideoCapture(demo if video_source is None else video_source)
 
-people_flag = {}
-people_count = 0
+video_width = utils.get_config("main", "video_width", int, 640)
+video_height = utils.get_config("main", "video_height", int, 480)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, video_width)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, video_height)
+
+marker = utils.get_config("main", "marker", int, int(video_height / 2))
+down_in = utils.get_config("main", "down_in", strtobool, True)
 
 main_config = utils.config.get("main", "main", fallback={})
 detection_threshold = utils.get_config("main", "detection_threshold", float, 0.5)
@@ -36,13 +43,20 @@ notification_log = utils.get_config(
 )
 max_capacity = utils.get_config("main", "max_capacity", int, 10)
 
+anno_blue = utils.get_config("main", "anno_blue", int, 250)
+anno_green = utils.get_config("main", "anno_green", int, 250)
+anno_red = utils.get_config("main", "anno_red", int, 0)
+anno_color = (anno_blue, anno_green, anno_red)
+
+people_flag = {}
+people_count = 0
+
+print("Press q to exit.")
+
 while cap.isOpened():
     ret, img = cap.read()
 
-    # img = cv2.resize(img, None, fx=0.4, fy=0.4)
     height, width, channels = img.shape
-    marker = int(height / 2)
-
     outs = yolo.detect_objects(img)
 
     boxes = []
@@ -81,7 +95,7 @@ while cap.isOpened():
 
     for object_id, centroid in tracks.items():
         latest = centroid[-1]
-        flag = 0 if latest[1] < marker else 1
+        flag = down_in if latest[1] >= marker else not down_in
 
         if object_id not in people_flag:
             people_flag[object_id] = flag
@@ -96,26 +110,26 @@ while cap.isOpened():
                 people_flag[object_id] = flag
                 people_flag.pop(object_id)
 
-        cv2.circle(img, (latest[0], latest[1]), 4, (255, 255, 255), -1)
+        cv2.circle(img, (latest[0], latest[1]), 4, anno_color, -1)
         cv2.putText(
             img,
             str(object_id),
             (latest[0] - 10, latest[1] - 10),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
-            (255, 255, 255),
-            2,
+            anno_color,
+            1,
         )
 
-    cv2.line(img, (0, marker), (int(width), marker), (255, 255, 255), 3)
+    cv2.line(img, (0, marker), (int(width), marker), anno_color, 3)
     cv2.putText(
         img,
         f"People: {people_count}",
         (10, 20),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5,
-        (255, 255, 255),
-        2,
+        anno_color,
+        1,
     )
 
     if is_people_count_changed:
@@ -129,3 +143,6 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
+
+if os.path.exists(notification_log):
+    os.remove(notification_log)
