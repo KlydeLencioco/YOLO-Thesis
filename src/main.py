@@ -121,11 +121,22 @@ while cap.isOpened():
             1,
         )
 
+    notif_log = "1" if people_count >= max_capacity else "0"
+    status = "Full" if notif_log == "1" else "Available"
     cv2.line(img, (0, marker), (int(width), marker), anno_color, 2)
     cv2.putText(
         img,
-        f"People: {people_count}",
+        f"Counter: {people_count}",
         (10, 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        anno_color,
+        1,
+    )
+    cv2.putText(
+        img,
+        status,
+        (10, 40),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5,
         anno_color,
@@ -133,11 +144,10 @@ while cap.isOpened():
     )
 
     if is_people_count_changed:
-        notif_log = "1" if people_count >= max_capacity else "0"
         with open(notification_log, "w") as f:
             f.write(notif_log)
 
-    cv2.imshow("Frame", img)
+    cv2.imshow("Video", img)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
