@@ -121,7 +121,7 @@ while cap.isOpened():
             1,
         )
 
-    cv2.line(img, (0, marker), (int(width), marker), anno_color, 3)
+    cv2.line(img, (0, marker), (int(width), marker), anno_color, 2)
     cv2.putText(
         img,
         f"People: {people_count}",
